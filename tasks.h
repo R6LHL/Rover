@@ -12,18 +12,30 @@ void ARMS_rangeSensorForward(void);
 void CHASSIS_moveForward(void);
 void CHASSIS_moveBackward(void);
 void CHASSIS_stop(void);
-void CHASSIS_turnForwardLeft(void);
-void CHASSIS_turnForwardRight(void);
-void CHASSIS_turnBackwardLeft(void);
-void CHASSIS_turnBackwardRight(void);
+void CHASSIS_turnLeft(void);
+void CHASSIS_turnRight(void);
+
 
 void SYSTEM_chooseDirection(void);
 
+void HARDWARE_frontLeftMotorFORWARD(void);
+void HARDWARE_frontLeftMotorOFF(void);
+void HARDWARE_frontLeftMotorBACKWARD(void);
+void HARDWARE_frontRightMotorFORWARD(void);
+void HARDWARE_frontRightMotorOFF(void);
+void HARDWARE_frontRightMotorBACKWARD(void);
+void HARDWARE_rearLeftMotorFORWARD(void);
+void HARDWARE_rearLeftMotorOFF(void);
+void HARDWARE_rearLeftMotorBACKWARD(void);
+void HARDWARE_rearRightMotorFORWARD(void);
+void HARDWARE_rearRightMotorOFF(void);
+void HARDWARE_rearRightMotorBACKWARD(void);
 
-extern unsigned int rangeForward;
-extern unsigned int rangeLeft;
-extern unsigned int rangeRight;
+volatile extern unsigned int rangeForward;
+volatile extern unsigned int rangeLeft;
+volatile extern unsigned int rangeRight;
 extern Ultrasonic rangeSensor;
+extern Servo rangeSensorArm;
 //
 /////////////////////////////////////////////////////////////
 void SENSORS_searchObstaclesForward(void){
@@ -51,13 +63,14 @@ void SENSORS_searchObstaclesRight(void){
   
   rangeRight = rangeSensor.read();
 
-  TaskManager::SetTask_(ARMS_rangeSensorForward,MEASURE_DELAY_MS);
+  //TaskManager::SetTask_(ARMS_rangeSensorForward,MEASURE_DELAY_MS);
+  TaskManager::SetTask_(SYSTEM_chooseDirection,MEASURE_DELAY_MS);
 }
 
 //////////////////////////////////////////////////////////////
 void ARMS_rangeSensorLeft(void){
 
-  //
+  rangeSensorArm.write(RANGE_SENSOR_ARM_LEFT);
 
   TaskManager::SetTask_(SENSORS_searchObstaclesLeft,SERVO_MOVE_DELAY_MS);
 }
@@ -65,7 +78,7 @@ void ARMS_rangeSensorLeft(void){
 
 void ARMS_rangeSensorRight(void){
 
-  //
+  rangeSensorArm.write(RANGE_SENSOR_ARM_RIGHT);
   
   TaskManager::SetTask_(SENSORS_searchObstaclesRight, SERVO_MOVE_DELAY_MS);
 }
@@ -73,14 +86,23 @@ void ARMS_rangeSensorRight(void){
 
 void ARMS_rangeSensorForward(void){
 
-  //
+  rangeSensorArm.write(RANGE_SENSOR_ARM_CENTER);
 
   TaskManager::SetTask_(SYSTEM_chooseDirection, 0);
 }
 //////////////////////////////////////////////////////////////////////////////////
 
 void SYSTEM_chooseDirection(void){
-
+  
+  #ifdef DEBUG
+    Serial.print(F("F:"));
+    Serial.println(rangeForward, DEC);
+    Serial.print(F("L:"));
+    Serial.println(rangeLeft, DEC);
+    Serial.print(F("RL:"));
+    Serial.println(rangeRight, DEC);
+  #endif
+  
   if ((rangeForward > rangeLeft) && (rangeForward > rangeRight)){
     if(rangeForward > MINIMUM_RANGE_CM){
       TaskManager::SetTask_(CHASSIS_moveForward,0);
@@ -88,13 +110,13 @@ void SYSTEM_chooseDirection(void){
     else {
       if (rangeLeft > rangeRight){
         if (rangeLeft > MINIMUM_RANGE_CM){
-          TaskManager::SetTask_(CHASSIS_turnBackwardLeft,0);
+          TaskManager::SetTask_(CHASSIS_turnLeft,0);
         }
         else TaskManager::SetTask_(CHASSIS_moveBackward,0);
       }
       if (rangeRight > rangeLeft){
         if(rangeRight > MINIMUM_RANGE_CM){
-          TaskManager::SetTask_(CHASSIS_turnBackwardRight,0);
+          TaskManager::SetTask_(CHASSIS_turnRight,0);
         }
         else TaskManager::SetTask_(CHASSIS_moveBackward,0);
       }
@@ -104,25 +126,29 @@ void SYSTEM_chooseDirection(void){
 
   if ((rangeLeft > rangeRight) && (rangeLeft > rangeForward)){
     if (rangeLeft > MINIMUM_RANGE_CM){
-      TaskManager::SetTask_(CHASSIS_turnForwardLeft,0);
+      TaskManager::SetTask_(CHASSIS_turnLeft,0);
     }
-    else TaskManager::SetTask_(CHASSIS_turnBackwardRight,0);
+    else TaskManager::SetTask_(CHASSIS_turnRight,0);
   }
 
   if ((rangeRight > rangeLeft) && (rangeRight > rangeForward)){
     if(rangeRight > MINIMUM_RANGE_CM){
-      TaskManager::SetTask_(CHASSIS_turnForwardRight,0);
+      TaskManager::SetTask_(CHASSIS_turnRight,0);
     }
-    else TaskManager::SetTask_(CHASSIS_turnBackwardLeft,0);
+    else TaskManager::SetTask_(CHASSIS_turnLeft,0);
   }
   
-  TaskManager::SetTask_(SENSORS_searchObstaclesForward, 0);
+  //TaskManager::SetTask_(ARMS_rangeSensorForward, 0);
 }
 //////////////////////////////////////////////////////////////////
 
 void CHASSIS_moveForward(){
 
-//HARDWARE LOGIC
+  HARDWARE_frontLeftMotorFORWARD();
+  HARDWARE_rearLeftMotorFORWARD();
+  HARDWARE_frontRightMotorFORWARD();
+  HARDWARE_rearRightMotorFORWARD();
+  
   
   TaskManager::SetTask_(CHASSIS_stop,MOVE_FORWARD_TIME_MS); 
   //END POINT OF LOGIC WAIT DIRECTION CHOOSE
@@ -131,56 +157,123 @@ void CHASSIS_moveForward(){
 
 void CHASSIS_moveBackward(){
 
-//HARDWARE LOGIC
+  HARDWARE_frontRightMotorBACKWARD();
+  HARDWARE_rearRightMotorBACKWARD();
+  HARDWARE_frontLeftMotorBACKWARD();
+  HARDWARE_rearLeftMotorBACKWARD();
 
   TaskManager::SetTask_(CHASSIS_stop,MOVE_BACKWARD_TIME_MS);
   //END POINT OF LOGIC WAIT DIRECTION CHOOSE
 }
 ////////////////////////////////////////////////////////////////////
 
-void CHASSIS_turnBackwardLeft(void){
+void CHASSIS_turnRight(void){
 
-//HARDWARE LOGIC
-
-  TaskManager::SetTask_(CHASSIS_stop,TURN_TIME_MS);
-  //END POINT OF LOGIC WAIT DIRECTION CHOOSE
-}
-/////////////////////////////////////////////////////////////////////
-
-void CHASSIS_turnBackwardRight(void){
-
-//HARDWARE LOGIC
-
-  TaskManager::SetTask_(CHASSIS_stop,TURN_TIME_MS);
-  //END POINT OF LOGIC WAIT DIRECTION CHOOSE
-}
-////////////////////////////////////////////////////////////////////
-
-void CHASSIS_turnForwardRight(void){
-
-//HARDWARE LOGIC
+  HARDWARE_frontRightMotorBACKWARD();
+  HARDWARE_rearRightMotorBACKWARD();
+  HARDWARE_frontLeftMotorFORWARD();
+  HARDWARE_rearLeftMotorFORWARD();
 
   TaskManager::SetTask_(CHASSIS_stop,TURN_TIME_MS);
   //END POINT OF LOGIC WAIT DIRECTION CHOOSE
 }
 /////////////////////////////////////////////////////////////////////
 
-void CHASSIS_turnForwardLeft(void){
+void CHASSIS_turnLeft(void){
 
-//HARDWARE LOGIC
-
+  HARDWARE_frontRightMotorFORWARD();
+  HARDWARE_rearRightMotorFORWARD();
+  HARDWARE_frontLeftMotorBACKWARD();
+  HARDWARE_rearLeftMotorBACKWARD();
+  
   TaskManager::SetTask_(CHASSIS_stop,TURN_TIME_MS);
   //END POINT OF LOGIC WAIT DIRECTION CHOOSE
 }
 /////////////////////////////////////////////////////////////////////////
 void CHASSIS_stop(void){
 
-////HARDWARE LOGIC
-  
-  TaskManager::SetTask_(SENSORS_searchObstaclesForward, 0);
+  HARDWARE_frontLeftMotorOFF();
+  HARDWARE_frontRightMotorOFF();
+  HARDWARE_rearLeftMotorOFF();
+  HARDWARE_rearRightMotorOFF();
+
+  TaskManager::SetTask_(ARMS_rangeSensorForward,0);
+  TaskManager::SetTask_(SENSORS_searchObstaclesForward, SERVO_HALF_MOVE_DELAY_MS);
   //END OF LOGIC, GOTO ENTER POINT;
 }
+////////////////////////////////////////////////////////////
 
+void HARDWARE_frontLeftMotorFORWARD(void){
+  digitalWrite(FRONT_LEFT_MOTOR_PIN_1, HIGH);
+  digitalWrite(FRONT_LEFT_MOTOR_PIN_2, LOW);
+}
+////////////////////////////////////////////
+
+void HARDWARE_frontLeftMotorOFF(void){
+  digitalWrite(FRONT_LEFT_MOTOR_PIN_1, LOW);
+  digitalWrite(FRONT_LEFT_MOTOR_PIN_2, LOW);
+}
+////////////////////////////////////////////
+
+void HARDWARE_frontLeftMotorBACKWARD(void){
+  digitalWrite(FRONT_LEFT_MOTOR_PIN_1, LOW);
+  digitalWrite(FRONT_LEFT_MOTOR_PIN_2, HIGH);
+}
+/////////////////////////////////////////////
+
+void HARDWARE_frontRightMotorFORWARD(void){
+  digitalWrite(FRONT_RIGHT_MOTOR_PIN_3, HIGH);
+  digitalWrite(FRONT_RIGHT_MOTOR_PIN_4, LOW);
+}
+///////////////////////////////////////////////
+
+void HARDWARE_frontRightMotorOFF(void){
+  digitalWrite(FRONT_RIGHT_MOTOR_PIN_3, LOW);
+  digitalWrite(FRONT_RIGHT_MOTOR_PIN_4, LOW);
+}
+///////////////////////////////////////////////
+
+void HARDWARE_frontRightMotorBACKWARD(void){
+  digitalWrite(FRONT_RIGHT_MOTOR_PIN_3, LOW);
+  digitalWrite(FRONT_RIGHT_MOTOR_PIN_4, HIGH);
+}
+////////////////////////////////////////////////
+
+void HARDWARE_rearLeftMotorFORWARD(void){
+  digitalWrite(REAR_LEFT_MOTOR_PIN_1, HIGH);
+  digitalWrite(REAR_LEFT_MOTOR_PIN_2, LOW);
+  
+}
+/////////////////////////////////////////////////
+
+void HARDWARE_rearLeftMotorOFF(void){
+  digitalWrite(REAR_LEFT_MOTOR_PIN_1, LOW);
+  digitalWrite(REAR_LEFT_MOTOR_PIN_2, LOW);
+}
+/////////////////////////////////////////////////
+
+void HARDWARE_rearLeftMotorBACKWARD(void){
+  digitalWrite(REAR_LEFT_MOTOR_PIN_1, LOW);
+  digitalWrite(REAR_LEFT_MOTOR_PIN_2, HIGH);
+}
+/////////////////////////////////////////////////
+
+void HARDWARE_rearRightMotorFORWARD(void){
+  digitalWrite(REAR_RIGHT_MOTOR_PIN_3, HIGH);
+  digitalWrite(REAR_RIGHT_MOTOR_PIN_4, LOW);
+}
+/////////////////////////////////////////////////
+
+void HARDWARE_rearRightMotorOFF(void){
+  digitalWrite(REAR_RIGHT_MOTOR_PIN_3, LOW);
+  digitalWrite(REAR_RIGHT_MOTOR_PIN_4, LOW);
+}
+///////////////////////////////////////////////////
+
+void HARDWARE_rearRightMotorBACKWARD(void){
+  digitalWrite(REAR_RIGHT_MOTOR_PIN_3, LOW);
+  digitalWrite(REAR_RIGHT_MOTOR_PIN_4, HIGH);
+}
 
 /////////////////////////////////////////////////////////////////////
 //END OF TASKS
