@@ -4,6 +4,7 @@
 void SENSORS_searchObstaclesForward(void);
 void SENSORS_searchObstaclesLeft(void);
 void SENSORS_searchObstaclesRight(void);
+void SENSORS_searchObstaclesBackward(void);
 
 void ARMS_rangeSensorLeft(void);
 void ARMS_rangeSensorRight(void);
@@ -31,10 +32,12 @@ void HARDWARE_rearRightMotorFORWARD(void);
 void HARDWARE_rearRightMotorOFF(void);
 void HARDWARE_rearRightMotorBACKWARD(void);
 
-volatile extern unsigned int rangeForward;
-volatile extern unsigned int rangeLeft;
-volatile extern unsigned int rangeRight;
-extern Ultrasonic rangeSensor;
+extern volatile unsigned int rangeForward;
+extern volatile unsigned int rangeLeft;
+extern volatile unsigned int rangeRight;
+extern volatile unsigned int rangeBackward;
+extern Ultrasonic rangeSensorFront;
+extern Ultrasonic rangeSensorBack;
 extern Servo rangeSensorArm;
 //
 /////////////////////////////////////////////////////////////
@@ -42,8 +45,8 @@ void SENSORS_searchObstaclesForward(void){
 
   //
   
-  rangeForward = rangeSensor.read();
-  TaskManager::SetTask_(ARMS_rangeSensorLeft,0);
+  rangeForward = rangeSensorFront.read();
+  TaskManager::SetTask_(ARMS_rangeSensorLeft,MEASURE_DELAY_MS);
 }
 
 /////////////////////////////////////////////////////////////
@@ -51,7 +54,7 @@ void SENSORS_searchObstaclesLeft(void){
 
   //
   
-  rangeLeft = rangeSensor.read();
+  rangeLeft = rangeSensorFront.read();
 
   TaskManager::SetTask_(ARMS_rangeSensorRight,MEASURE_DELAY_MS);
 }
@@ -61,10 +64,14 @@ void SENSORS_searchObstaclesRight(void){
 
   //
   
-  rangeRight = rangeSensor.read();
+  rangeRight = rangeSensorFront.read();
 
-  //TaskManager::SetTask_(ARMS_rangeSensorForward,MEASURE_DELAY_MS);
-  TaskManager::SetTask_(SYSTEM_chooseDirection,MEASURE_DELAY_MS);
+  TaskManager::SetTask_(SENSORS_searchObstaclesBackward,MEASURE_DELAY_MS);
+  TaskManager::SetTask_(ARMS_rangeSensorForward,SERVO_MOVE_DELAY_MS);
+}
+/////////////////////////////////////////////////////////////////////
+void SENSORS_searchObstaclesBackward(void){
+  rangeBackward = rangeSensorBack.read();
 }
 
 //////////////////////////////////////////////////////////////
@@ -89,6 +96,8 @@ void ARMS_rangeSensorForward(void){
   rangeSensorArm.write(RANGE_SENSOR_ARM_CENTER);
 
   TaskManager::SetTask_(SYSTEM_chooseDirection, 0);
+  TaskManager::SetTask_(SENSORS_searchObstaclesForward, SERVO_HALF_MOVE_DELAY_MS);
+  
 }
 //////////////////////////////////////////////////////////////////////////////////
 
@@ -99,45 +108,28 @@ void SYSTEM_chooseDirection(void){
     Serial.println(rangeForward, DEC);
     Serial.print(F("L:"));
     Serial.println(rangeLeft, DEC);
-    Serial.print(F("RL:"));
+    Serial.print(F("R:"));
     Serial.println(rangeRight, DEC);
   #endif
   
-  if ((rangeForward > rangeLeft) && (rangeForward > rangeRight)){
-    if(rangeForward > MINIMUM_RANGE_CM){
-      TaskManager::SetTask_(CHASSIS_moveForward,0);
-    }
-    else {
-      if (rangeLeft > rangeRight){
-        if (rangeLeft > MINIMUM_RANGE_CM){
-          TaskManager::SetTask_(CHASSIS_turnLeft,0);
-        }
-        else TaskManager::SetTask_(CHASSIS_moveBackward,0);
-      }
-      if (rangeRight > rangeLeft){
-        if(rangeRight > MINIMUM_RANGE_CM){
-          TaskManager::SetTask_(CHASSIS_turnRight,0);
-        }
-        else TaskManager::SetTask_(CHASSIS_moveBackward,0);
-      }
-      else TaskManager::SetTask_(CHASSIS_moveBackward,0);
-    }
-  }
-
-  if ((rangeLeft > rangeRight) && (rangeLeft > rangeForward)){
-    if (rangeLeft > MINIMUM_RANGE_CM){
-      TaskManager::SetTask_(CHASSIS_turnLeft,0);
-    }
-    else TaskManager::SetTask_(CHASSIS_turnRight,0);
-  }
-
-  if ((rangeRight > rangeLeft) && (rangeRight > rangeForward)){
-    if(rangeRight > MINIMUM_RANGE_CM){
-      TaskManager::SetTask_(CHASSIS_turnRight,0);
-    }
-    else TaskManager::SetTask_(CHASSIS_turnLeft,0);
+  if(rangeForward > MINIMUM_RANGE_CM){
+     TaskManager::SetTask_(CHASSIS_moveForward,0);
   }
   
+  else if ((rangeLeft > rangeRight) && (rangeLeft > MINIMUM_RANGE_CM)){ // if left range is max
+        
+  TaskManager::SetTask_(CHASSIS_turnLeft,0);     
+  }
+  
+  else if ((rangeRight > rangeLeft) && (rangeRight > MINIMUM_RANGE_CM)){ // if right range is max
+       
+  TaskManager::SetTask_(CHASSIS_turnRight,0);
+  }
+  
+  else if (rangeBackward < MINIMUM_RANGE_CM){TaskManager::SetTask_(CHASSIS_moveForward,0);}
+  else {TaskManager::SetTask_(CHASSIS_moveBackward,0);}
+ 
+  //else TaskManager::SetTask_(CHASSIS_stop,0);
   //TaskManager::SetTask_(ARMS_rangeSensorForward, 0);
 }
 //////////////////////////////////////////////////////////////////
@@ -148,8 +140,7 @@ void CHASSIS_moveForward(){
   HARDWARE_rearLeftMotorFORWARD();
   HARDWARE_frontRightMotorFORWARD();
   HARDWARE_rearRightMotorFORWARD();
-  
-  
+    
   TaskManager::SetTask_(CHASSIS_stop,MOVE_FORWARD_TIME_MS); 
   //END POINT OF LOGIC WAIT DIRECTION CHOOSE
 }
@@ -197,8 +188,12 @@ void CHASSIS_stop(void){
   HARDWARE_rearLeftMotorOFF();
   HARDWARE_rearRightMotorOFF();
 
+  rangeForward = 0;
+  rangeLeft = 0;
+  rangeRight = 0;
+
   TaskManager::SetTask_(ARMS_rangeSensorForward,0);
-  TaskManager::SetTask_(SENSORS_searchObstaclesForward, SERVO_HALF_MOVE_DELAY_MS);
+  //TaskManager::SetTask_(SENSORS_searchObstaclesForward, SERVO_HALF_MOVE_DELAY_MS);
   //END OF LOGIC, GOTO ENTER POINT;
 }
 ////////////////////////////////////////////////////////////
