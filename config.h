@@ -18,12 +18,12 @@
 
 #define MOVE_FORWARD_TIME_MS        (500)
 #define MOVE_BACKWARD_TIME_MS       (250)
-#define TURN_TIME_MS                (250)
+#define TURN_TIME_MS                (500)
 
 #define DRIVE_TYPE                  (AWD) //OR FWD OR AWD -Rear or Front or All Wheel Drive
 
 #define RANGE_SENSOR_ARM_PIN        (10)
-#define RANGE_SENSOR_ARM_CENTER     (100)
+#define RANGE_SENSOR_ARM_CENTER     (85)
 #define RANGE_SENSOR_ARM_LEFT       (180)
 #define RANGE_SENSOR_ARM_RIGHT      (0)
 
