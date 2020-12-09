@@ -29,13 +29,13 @@
 
 #define FRONT_LEFT_MOTOR_PIN_1      (2)
 #define FRONT_LEFT_MOTOR_PIN_2      (4)
-#define FRONT_RIGHT_MOTOR_PIN_3     (8)
-#define FRONT_RIGHT_MOTOR_PIN_4     (7)
+#define FRONT_RIGHT_MOTOR_PIN_3     (7)
+#define FRONT_RIGHT_MOTOR_PIN_4     (8)
 
-#define REAR_LEFT_MOTOR_PIN_1       (3)
-#define REAR_LEFT_MOTOR_PIN_2       (5)
-#define REAR_RIGHT_MOTOR_PIN_3      (6)
-#define REAR_RIGHT_MOTOR_PIN_4      (9)
+#define REAR_LEFT_MOTOR_PIN_1       (5)
+#define REAR_LEFT_MOTOR_PIN_2       (3)
+#define REAR_RIGHT_MOTOR_PIN_3      (9)
+#define REAR_RIGHT_MOTOR_PIN_4      (6)
 
 //#define HARDWARE_DELAY_MS           (500)
 
