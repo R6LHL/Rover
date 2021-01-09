@@ -57,7 +57,7 @@ void SYSTEM_check_Forward(void){
 
   if (rangeForward < MINIMUM_RANGE_CM){
     TaskManager::SetTask_(CHASSIS_stop,0);
-    TaskManager::SetTask_(ARMS_rangeSensorLeft,MEASURE_DELAY_MS);
+    TaskManager::SetTask_(ARMS_rangeSensorLeft,0);
   }
   else {TaskManager::SetTask_(CHASSIS_moveForward,0);}
 }
@@ -136,8 +136,8 @@ void SYSTEM_chooseDirection(void){
 void CHASSIS_moveForward(){
 
   HARDWARE_frontLeftMotorFORWARD();
-  HARDWARE_rearLeftMotorFORWARD();
   HARDWARE_frontRightMotorFORWARD();
+  HARDWARE_rearLeftMotorFORWARD();
   HARDWARE_rearRightMotorFORWARD();
     
   TaskManager::SetTask_(ARMS_rangeSensorForward,0); 

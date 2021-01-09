@@ -12,13 +12,8 @@ volatile unsigned int rangeLeft;
 volatile unsigned int rangeRight;
 volatile unsigned int rangeBackward;
 
-///////////////////////////////////////////////////
-ISR(TIMER2_OVF_vect){
-  TaskManager::TimerTaskService_();
-}
-////////////////////////////////////////////////////
 
-
+#include "interrupts.h"
 ///////////////////////////////////////////////////
 void setup() {
   noInterrupts();
@@ -29,7 +24,10 @@ void setup() {
   
   TCCR2B |= (1<<CS22);    // (clk/64)
   TIMSK2 |= (1<<TOIE2);   // ovf interrupt enabled
-    
+
+  PCICR |= (1<<PCIE2);   //SONIC ECHO INTERRUPT
+  PCMSK2 |= (1<<PCINT23);
+  
   interrupts();
   
   //FRONT RANGE SENSOR PINS

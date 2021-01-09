@@ -12,7 +12,7 @@
 
 #define SERVO_HALF_MOVE_DELAY_MS   (500)
 #define SERVO_MOVE_DELAY_MS         (2 * (SERVO_HALF_MOVE_DELAY_MS))
-#define MEASURE_DELAY_MS            100
+#define MEASURE_DELAY_MS            30
 
 #define MINIMUM_RANGE_CM            (30)
 
