@@ -29,7 +29,9 @@ void setup() {
   
   TCCR2B |= (1<<CS22);    // (clk/64)
   TIMSK2 |= (1<<TOIE2);   // ovf interrupt enabled
-
+    
+  interrupts();
+  
   //FRONT RANGE SENSOR PINS
   pinMode(FRONT_RANGE_SENSOR_TRIGGER_PIN, OUTPUT);
   digitalWrite(FRONT_RANGE_SENSOR_TRIGGER_PIN, LOW);
@@ -67,7 +69,7 @@ void setup() {
   
   rangeSensorArm.attach(RANGE_SENSOR_ARM_PIN);
   
-  TaskManager::SetTask_(CHASSIS_stop,0); //LOGIC ENTER POINT
+
 //
   //TESTING MOTORS
   //TESTING FRONT LEFT
@@ -93,8 +95,8 @@ void setup() {
   delay(500);
   HARDWARE_rearRightMotorOFF();
   delay(500);
-  
-  interrupts();
+
+  TaskManager::SetTask_(ARMS_rangeSensorForward,0); //LOGIC ENTER POINT
 }
 /////////////////////////////////////////////////
 void loop() {TaskManager::ProcessTaskQueue_();}

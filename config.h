@@ -14,13 +14,13 @@
 #define SERVO_MOVE_DELAY_MS         (2 * (SERVO_HALF_MOVE_DELAY_MS))
 #define MEASURE_DELAY_MS            100
 
-#define MINIMUM_RANGE_CM            (10)
+#define MINIMUM_RANGE_CM            (30)
 
 #define MOVE_FORWARD_TIME_MS        (500)
-#define MOVE_BACKWARD_TIME_MS       (250)
-#define TURN_TIME_MS                (500)
+#define MOVE_BACKWARD_TIME_MS       (500)
+#define TURN_TIME_MS                (1000)
 
-#define DRIVE_TYPE                  (AWD) //OR FWD OR AWD -Rear or Front or All Wheel Drive
+//#define DRIVE_TYPE                  (AWD) //OR FWD OR AWD -Rear or Front or All Wheel Drive
 
 #define RANGE_SENSOR_ARM_PIN        (10)
 #define RANGE_SENSOR_ARM_CENTER     (85)
@@ -42,4 +42,4 @@
 #define DEBUG
 /////////////////////////////////////////////
 
-#endif CONFIG_H
+#endif //CONFIG_H
