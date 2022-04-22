@@ -2,7 +2,6 @@
 #define _CONFIG_H
 
 #define CPU_CLOCK (12000000)   // Hz at UNO328p
-#define T_TASK_QUEUE_SIZE (5)
 
 #define FRONT_RANGE_SENSOR_TRIGGER_PIN  (12)
 #define FRONT_RANGE_SENSOR_ECHO_PIN     (11)

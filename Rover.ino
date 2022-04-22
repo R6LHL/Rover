@@ -1,20 +1,23 @@
 #include "headers.h"
 
-#ifdef Ultrasonic_h
-  Ultrasonic rangeSensorFront(FRONT_RANGE_SENSOR_TRIGGER_PIN, FRONT_RANGE_SENSOR_ECHO_PIN);
-  Ultrasonic rangeSensorBack (BACK_RANGE_SENSOR_TRIGGER_PIN, BACK_RANGE_SENSOR_ECHO_PIN);
-#endif //Ultrasonic_h
+TaskManager5 OS;
+
+Ultrasonic rangeSensorFront(FRONT_RANGE_SENSOR_TRIGGER_PIN, FRONT_RANGE_SENSOR_ECHO_PIN);
+Ultrasonic rangeSensorBack(BACK_RANGE_SENSOR_TRIGGER_PIN, BACK_RANGE_SENSOR_ECHO_PIN);
 
 Servo rangeSensorArm;
 
-volatile unsigned int rangeForward;
-volatile unsigned int rangeLeft;
-volatile unsigned int rangeRight;
-volatile unsigned int rangeBackward;
+volatile unsigned int rangeForward = 0;
+volatile unsigned int rangeLeft = 0;
+volatile unsigned int rangeRight = 0;
+volatile unsigned int rangeBackward = 0;
 
 
 #include "interrupts.h"
+
+
 ///////////////////////////////////////////////////
+
 void setup() {
   noInterrupts();
   
@@ -24,10 +27,10 @@ void setup() {
   
   TCCR2B |= (1<<CS22);    // (clk/64)
   TIMSK2 |= (1<<TOIE2);   // ovf interrupt enabled
-
+/*
   PCICR |= (1<<PCIE2);   //SONIC ECHO INTERRUPT
   PCMSK2 |= (1<<PCINT23);
-  
+*/
   interrupts();
   
   //FRONT RANGE SENSOR PINS
@@ -71,31 +74,31 @@ void setup() {
 //
   //TESTING MOTORS
   //TESTING FRONT LEFT
-  HARDWARE_frontLeftMotorFORWARD();
+  HARDWARE::frontLeftMotorFORWARD();
   delay(500);
-  HARDWARE_frontLeftMotorOFF();
+  HARDWARE::frontLeftMotorOFF();
   delay(500);
 
   //TESTING REAR LEFT
-  HARDWARE_rearLeftMotorBACKWARD();
+  HARDWARE::rearLeftMotorBACKWARD();
   delay(500);
-  HARDWARE_rearLeftMotorOFF();
+  HARDWARE::rearLeftMotorOFF();
   delay(500);
   
   //TESTING FRONT RIGHT
-  HARDWARE_frontRightMotorFORWARD();
+  HARDWARE::frontRightMotorFORWARD();
   delay(500);
-  HARDWARE_frontRightMotorOFF();
+  HARDWARE::frontRightMotorOFF();
   delay(500);
 
   //TESTING REAR RIGHT
-  HARDWARE_rearRightMotorBACKWARD();
+  HARDWARE::rearRightMotorBACKWARD();
   delay(500);
-  HARDWARE_rearRightMotorOFF();
+  HARDWARE::rearRightMotorOFF();
   delay(500);
 
-  TaskManager::SetTask_(ARMS_rangeSensorForward,0); //LOGIC ENTER POINT
+  OS.SetTask_(ARMS::rangeSensorForward,0); //LOGIC ENTER POINT
 }
 /////////////////////////////////////////////////
-void loop() {TaskManager::ProcessTaskQueue_();}
+void loop() {OS.ProcessTaskQueue_();}
 /////////////////////////////////////////////////
